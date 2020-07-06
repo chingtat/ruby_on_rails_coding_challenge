@@ -1,20 +1,16 @@
 # frozen_string_literal: true
 
-require_relative '../../cm_challenge/absences'
+require 'date'
 require_relative '../../cm_challenge/controllers/absences_controller'
-require_relative '../../cm_challenge/services/absences_handler/absences_list_getter'
-require_relative '../../cm_challenge/services/calendar_handler/calendar_description_getter'
-require_relative '../../cm_challenge/api.rb'
 
-RSpec.describe AbsencesController, 'Handle CRUD actions of absences' do
+RSpec.describe AbsencesController, 'Handle CRUD actions of Absences' do
   subject { described_class.new(params) }
-  let(:members) { CmChallenge::Api.members }
-  let(:absences) { CmChallenge::Api.absences }
-  let(:absences_list_getter_class) { AbsencesHandler::AbsencesListGetter }
-  let(:absences_list) { absences_list_getter_class.new(absences, members).get }
+
   let(:params) do
     { userId: '2664', startDate: '2017-01-01', endDate: '2017-02-01' }
   end
+  let(:params_start_date) { Date.parse(params[:startDate]) }
+  let(:params_end_date) { Date.parse(params[:endDate]) }
 
   describe '.initialize' do
     it 'initialize with params' do
@@ -22,15 +18,21 @@ RSpec.describe AbsencesController, 'Handle CRUD actions of absences' do
     end
   end
 
-  describe '#filter_with_user_id' do
-    it 'filter the absences list with the user_id' do
-      expect(subject.filter_with_user_id).to all(have_value(2664))
+  describe '#index_by_user_id' do
+    it 'get a list of abseces with same user_id' do
+      expect(subject.index_by_user_id).to all(have_value(2664))
     end
   end
 
-  describe '#filter_with_date_range' do
-    it 'filter the absences list with the date range' do
-      expect(subject.filter_with_date_range).not_to be_empty
+  describe '#index_by_date_range' do
+    it 'get a list of abseces within the date range' do
+      expect(subject.index_by_date_range).not_to be_empty
+      subject.index_by_date_range.each do |absence|
+        absence_start_date = absence[:start_date]
+        absence_end_date = absence[:end_date]
+        expect(Date.parse(absence_start_date)).to be >= params_start_date
+        expect(Date.parse(absence_end_date)).to be <= params_end_date
+      end
     end
   end
 end

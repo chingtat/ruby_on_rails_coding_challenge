@@ -10,13 +10,13 @@ set :port, 3000
 
 get '/' do
   if !params[:userId].nil?
-    response = AbsencesController.new(params).filter_with_user_id
+    response = AbsencesController.new(params).index_by_user_id
     response.to_json
   elsif !params[:startDate].nil? && !params[:endDate].nil?
-    response = AbsencesController.new(params).filter_with_date_range
+    response = AbsencesController.new(params).index_by_date_range
     response.to_json
   else
-    CalendarsController.new.create_single_calendar
+    CalendarsController.create
     send_file './iCal.ics', filename: 'iCal.ics', type: 'Application/octet-stream'
   end
 end

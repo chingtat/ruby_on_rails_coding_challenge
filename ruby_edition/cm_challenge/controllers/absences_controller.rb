@@ -3,7 +3,7 @@
 require 'date'
 
 require_relative '../api'
-require_relative '../services/absences_handler/absences_list_getter'
+require_relative '../services/absence_list'
 
 # Controller handling the CRUD actions for the absences
 class AbsencesController
@@ -12,7 +12,7 @@ class AbsencesController
     @absences = _get_list_of_absences
   end
 
-  def filter_with_user_id
+  def index_by_user_id
     result = []
     @absences.each do |absence|
       result.push(absence) if absence[:user_id] == @params['userId'].to_i
@@ -20,7 +20,7 @@ class AbsencesController
     result
   end
 
-  def filter_with_date_range
+  def index_by_date_range
     result = []
     @absences.each do |absence|
       result.push(absence) if _check_start_date(absence) && _check_end_date(absence)
@@ -31,16 +31,14 @@ class AbsencesController
   private
 
   def _get_list_of_absences
-    members = CmChallenge::Api.members
-    absences = CmChallenge::Api.absences
-    AbsencesHandler::AbsencesListGetter.new(absences, members).get
+    AbsenceList.create
   end
 
   def _check_start_date(absence)
-    DateTime.parse(absence[:start_date]) >= DateTime.parse(@params[:startDate])
+    Date.parse(absence[:start_date]) >= Date.parse(@params[:startDate])
   end
 
   def _check_end_date(absence)
-    DateTime.parse(absence[:end_date]) <= DateTime.parse(@params[:endDate])
+    Date.parse(absence[:end_date]) <= Date.parse(@params[:endDate])
   end
 end
